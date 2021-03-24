@@ -6,7 +6,7 @@ Simple calculator in Python, which can solve expression in string
 
 <I>In: </I>4-5+6
 
-<I>Out: </I>-7
+<I>Out: </I>5
 
 <I>In: </I>6/7*5
 
@@ -32,10 +32,6 @@ Simple calculator in Python, which can solve expression in string
 
 <I>Out: </I>4
 
-<I>In: </I>(4+6)*(7-3)/10
-
-<I>Out: </I>4
-
 <B>It can also understand missing operation symbols</B>
 
 <I>In: </I>((((5)4)3)2)1
@@ -47,4 +43,14 @@ Simple calculator in Python, which can solve expression in string
 <I>In: </I>5e-2pi
 
 <I>Out: </I>7.308223835115639
+
+<B>Some hard expressions</B>
+
+<I>In: </I>5√(5)!5
+
+<I>Out: </I>273.8612787525831
+
+<I>In: </I> √(5+11)*5
+
+<I>Out: </I>20
 </P>
