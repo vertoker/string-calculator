@@ -3,6 +3,7 @@ import math, re
 order_signs = {'+':1, '-':1, '*':2, '/':2, ':':2, '^':3, '√':3, '!':4}
 pos_types = {'+':0, '-':0, '*':0, '/':0, ':':0, '^':0, '√':1, '!':2}
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
+all_nums = '.1234567890'
 
 def input_float(comment):
     try:
@@ -24,7 +25,7 @@ def Operation(sign, num1, num2):
         return num1 - num2
     elif sign == '*':
         return num1 * num2
-    elif sign == '/' or sign == ':':
+    elif sign == '/':
         return num1 / num2
     elif sign == '^':
         return math.pow(num1, num2)
@@ -39,6 +40,10 @@ def Operation(sign, num1, num2):
 
 def Calculate(expression):
     expression = expression.replace(',', '.')
+    expression = expression.replace(':', '/')
+    expression = expression.replace('**', '^')
+    
+    length = len(expression)
     localNum = ''
     power = 0
     targetNum = 0
@@ -48,47 +53,56 @@ def Calculate(expression):
     order = []
     target = []
     
-    for s in expression:
-        isNum = False
-        if s in '.1234567890' or s in alphabet:
-            localNum += s
-            isNum = True
-        elif s == '-':
-        	if len(signs) == 0:
-        		if localNum == '':
-        			localNum += s
-        			isNum = True
-        		else:
-        			signs.append(s)
-        			order.append(power)
-        			target.append(targetNum)
-        			targetNum += 1
-        	elif localNum == '' and signs[-1] != '!':
-        		localNum += s
-        		isNum = True
-        	else:
-        		targetNum += 1
-        		signs.append(s)
-        		order.append(power)
-        		target.append(targetNum)
-        elif s in '+*/:^!√':
-            signs.append(s)
-            order.append(power)
-            target.append(targetNum)
-            if s in '+*/:^':
-            	targetNum += 1
-        elif s == '(':
-        	if localNum != '':
-        		signs.append('*')
-        		order.append(power)
-        	power += 1
-        elif s == ')':
-            power -= 1
-        if not isNum and localNum != '' and localNum != '-':
-            nums.append(localNum)
-            localNum = ''
+    for i in range(length):
+    	s = expression[i]
+    	isNum = False
+    	if s in all_nums or s in alphabet:
+    		localNum += s
+    		isNum = True
+    	elif s == '-':
+    		if len(signs) == 0:
+    			if localNum == '':
+    				localNum += s
+    				isNum = True
+    			else:
+    				signs.append(s)
+    				order.append(power)
+    				target.append(targetNum)
+    				targetNum += 1
+    		elif localNum == '' and signs[-1] != '!':
+    			localNum += s
+    			isNum = True
+    		else:
+    			signs.append(s)
+    			order.append(power)
+    			target.append(targetNum)
+    			targetNum += 1
+    	elif s in '+*/:^!√':
+    		signs.append(s)
+    		order.append(power)
+    		target.append(targetNum)
+    		if s in '+*/:^':
+    			targetNum += 1
+    	elif s == '(':
+    		if localNum != '':
+    			signs.append('*')
+    			order.append(power)
+    			target.append(targetNum)
+    			targetNum += 1
+    		power += 1
+    	elif s == ')':
+    		if i + 1 < length:
+    			if expression[i + 1] in all_nums:
+    				signs.append('*')
+    				order.append(power)
+    				target.append(targetNum)
+    				targetNum += 1
+    		power -= 1
+    	if not isNum and localNum != '' and localNum != '-':
+    		nums.append(localNum)
+    		localNum = ''
     if localNum != '' and localNum != '-':
-        nums.append(localNum)
+    	nums.append(localNum)
 
     for i in range(len(nums)):
         num = nums[i]
@@ -126,6 +140,7 @@ def Calculate(expression):
 
         print(nums)
         print(signs)
+        print(order)
         print(target)
         pos_type = pos_types[signs[nextID]]
         if pos_type == 0:
@@ -133,9 +148,10 @@ def Calculate(expression):
         	signs.pop(nextID)
         	order.pop(nextID)
         	nums.pop(target[nextID] + 1)
+        	target.pop(nextID)
         	for i in range(len(target)):
         		if target[i] > nextID:
-        			target[i] -= - 1
+        			target[i] -= 1
         elif pos_type == 1:# √
         	if target[nextID] + 1 < len(nums):
         		nums[target[nextID] + 1] = Operation(signs[nextID], 0, nums[target[nextID] + 1])
