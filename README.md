@@ -42,4 +42,9 @@ Simple calculator in Python, which can solve expression in string
 
 <I>Out: </I>120
 
+<B>And constants (e, pi)</B>
+
+<I>In: </I>5e-2pi
+
+<I>Out: </I>7.308223835115639
 </P>
