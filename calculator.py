@@ -5,13 +5,6 @@ pos_types = {'+':0, '-':0, '*':0, '/':0, '^':0, '√':1, '!':2}
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
 all_nums = '.1234567890'
 
-def input_float(comment):
-    try:
-        num = input(comment)
-        return float(num)
-    except:
-        return input_float(comment)
-
 def Factorial(num):
     if num < 2:
         return num
@@ -38,7 +31,7 @@ def Operation(sign, num1, num2):
             return math.sqrt(num2)
     return 0
 
-def Calculate(expression):
+def Calculate(expression, saveconvert2int = True):
     # Format input
     expression = expression.replace(',', '.')
     expression = expression.replace(':', '/')
@@ -156,11 +149,11 @@ def Calculate(expression):
                 nextID = y
                 signPower = localPower
                 signOrder = localOrder
-        # Logs
+        '''# Logs
         print(nums)
         print(signs)
         print(order)
-        print(target)
+        print(target)'''
         pos_type = pos_types[signs[nextID]]
         if pos_type == 0:
             nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
@@ -190,6 +183,8 @@ def Calculate(expression):
             for i in range(len(target)):
                 if target[i] > last:
                     target[i] -= 1
+    if nums[0] % 1 == 0 and saveconvert2int:
+        return int(nums[0])
     return nums[0]
 
 print(Calculate(input('Input expression: ')))
