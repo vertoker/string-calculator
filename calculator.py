@@ -1,0 +1,155 @@
+import math, re
+
+order_signs = {'+':1, '-':1, '*':2, '/':2, ':':2, '^':3, '√':3, '!':4}
+pos_types = {'+':0, '-':0, '*':0, '/':0, ':':0, '^':0, '√':1, '!':2}
+alphabet = 'abcdefghijklmnopqrstuvwxyz'
+
+def input_float(comment):
+    try:
+        num = input(comment)
+        return float(num)
+    except:
+        return input_float(comment)
+
+def Factorial(num):
+    if num < 2:
+        return num
+    else:
+        return num * Factorial(num - 1)
+
+def Operation(sign, num1, num2):
+    if sign == '+':
+        return num1 + num2
+    elif sign == '-':
+        return num1 - num2
+    elif sign == '*':
+        return num1 * num2
+    elif sign == '/' or sign == ':':
+        return num1 / num2
+    elif sign == '^':
+        return math.pow(num1, num2)
+    elif sign == '!':
+        return Factorial(int(num1))
+    elif sign == '√':
+    	if num2 < 0:
+    		return -math.sqrt(-num2)
+    	else:
+    		return math.sqrt(num2)
+    return 0
+
+def Calculate(expression):
+    expression = expression.replace(',', '.')
+    localNum = ''
+    power = 0
+    targetNum = 0
+    
+    nums = []
+    signs = []
+    order = []
+    target = []
+    
+    for s in expression:
+        isNum = False
+        if s in '.1234567890' or s in alphabet:
+            localNum += s
+            isNum = True
+        elif s == '-':
+        	if len(signs) == 0:
+        		if localNum == '':
+        			localNum += s
+        			isNum = True
+        		else:
+        			signs.append(s)
+        			order.append(power)
+        			target.append(targetNum)
+        			targetNum += 1
+        	elif localNum == '' and signs[-1] != '!':
+        		localNum += s
+        		isNum = True
+        	else:
+        		targetNum += 1
+        		signs.append(s)
+        		order.append(power)
+        		target.append(targetNum)
+        elif s in '+*/:^!√':
+            signs.append(s)
+            order.append(power)
+            target.append(targetNum)
+            if s in '+*/:^':
+            	targetNum += 1
+        elif s == '(':
+        	if localNum != '':
+        		signs.append('*')
+        		order.append(power)
+        	power += 1
+        elif s == ')':
+            power -= 1
+        if not isNum and localNum != '' and localNum != '-':
+            nums.append(localNum)
+            localNum = ''
+    if localNum != '' and localNum != '-':
+        nums.append(localNum)
+
+    for i in range(len(nums)):
+        num = nums[i]
+        multiplier = 1
+        localNum = ''
+        
+        if 'pi' in num:
+            multiplier *= pow(math.pi, len(re.findall('pi', num)))
+            num = num.replace('pi', '?')
+        if 'e' in num:
+            multiplier *= pow(math.e, len(re.findall('e', num)))
+            num = num.replace('e', '?')
+        
+        for n in num:
+            if (n in alphabet or n == '?') and localNum != '':
+                multiplier *= float(localNum)
+                localNum = ''
+            elif n != '?':
+                localNum += n
+        if localNum != '':
+            multiplier *= float(localNum)
+        nums[i] = multiplier
+    
+    for x in range(len(signs)):
+        nextID = 0
+        signPower = order_signs[signs[0]]
+        signOrder = order[0]
+        for y in range(1, len(signs)):
+            localPower = order_signs[signs[y]]
+            localOrder = order[y]
+            if signOrder < localOrder or (signOrder == localOrder and signPower < localPower):
+                nextID = y
+                signPower = localPower
+                signOrder = localOrder
+
+        print(nums)
+        print(signs)
+        print(target)
+        pos_type = pos_types[signs[nextID]]
+        if pos_type == 0:
+        	nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
+        	signs.pop(nextID)
+        	order.pop(nextID)
+        	nums.pop(target[nextID] + 1)
+        	for i in range(len(target)):
+        		if target[i] > nextID:
+        			target[i] -= - 1
+        elif pos_type == 1:# √
+        	if target[nextID] + 1 < len(nums):
+        		nums[target[nextID] + 1] = Operation(signs[nextID], 0, nums[target[nextID] + 1])
+        		if len(signs) < len(nums):
+        			nums[target[nextID]] = Operation('*', nums[target[nextID]], nums[target[nextID] + 1])
+        			nums.pop(target[nextID] + 1)
+        	else:
+        		nums[target[nextID]] = Operation(signs[nextID], 0, nums[target[nextID]])
+        	signs.pop(nextID)
+        	order.pop(nextID)
+        elif pos_type == 2:
+        	nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], 0)
+        	signs.pop(nextID)
+        	order.pop(nextID)
+    return nums[0]
+
+print(Calculate(input('Input expression: ')))
