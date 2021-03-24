@@ -32,78 +32,83 @@ def Operation(sign, num1, num2):
     elif sign == '!':
         return Factorial(int(num1))
     elif sign == '√':
-    	if num2 < 0:
-    		return -math.sqrt(-num2)
-    	else:
-    		return math.sqrt(num2)
+        if num2 < 0:
+            return -math.sqrt(-num2)
+        else:
+            return math.sqrt(num2)
     return 0
 
 def Calculate(expression):
+    # Format input
     expression = expression.replace(',', '.')
     expression = expression.replace(':', '/')
     expression = expression.replace('**', '^')
-    
+
+    # Start params
     length = len(expression)
     localNum = ''
     power = 0
     targetNum = 0
     
+    # Lists
     nums = []
     signs = []
     order = []
     target = []
     
+    # Collect data and write lists
     for i in range(length):
-    	s = expression[i]
-    	isNum = False
-    	if s in all_nums or s in alphabet:
-    		localNum += s
-    		isNum = True
-    	elif s == '-':
-    		if len(signs) == 0:
-    			if localNum == '':
-    				localNum += s
-    				isNum = True
-    			else:
-    				signs.append(s)
-    				order.append(power)
-    				target.append(targetNum)
-    				targetNum += 1
-    		elif localNum == '' and signs[-1] != '!':
-    			localNum += s
-    			isNum = True
-    		else:
-    			signs.append(s)
-    			order.append(power)
-    			target.append(targetNum)
-    			targetNum += 1
-    	elif s in '+*/:^!√':
-    		signs.append(s)
-    		order.append(power)
-    		target.append(targetNum)
-    		if s in '+*/:^':
-    			targetNum += 1
-    	elif s == '(':
-    		if localNum != '':
-    			signs.append('*')
-    			order.append(power)
-    			target.append(targetNum)
-    			targetNum += 1
-    		power += 1
-    	elif s == ')':
-    		if i + 1 < length:
-    			if expression[i + 1] in all_nums:
-    				signs.append('*')
-    				order.append(power)
-    				target.append(targetNum)
-    				targetNum += 1
-    		power -= 1
-    	if not isNum and localNum != '' and localNum != '-':
-    		nums.append(localNum)
-    		localNum = ''
+        s = expression[i]
+        isNum = False
+        if s in all_nums or s in alphabet:
+            localNum += s
+            isNum = True
+        elif s == '-':
+            if len(signs) == 0:
+                if localNum == '':
+                    localNum += s
+                    isNum = True
+                else:
+                    signs.append(s)
+                    order.append(power)
+                    target.append(targetNum)
+                    targetNum += 1
+            elif localNum == '' and signs[-1] != '!':
+                localNum += s
+                isNum = True
+            else:
+                signs.append(s)
+                order.append(power)
+                target.append(targetNum)
+                targetNum += 1
+        elif s in '+*/:^!√':
+            signs.append(s)
+            order.append(power)
+            target.append(targetNum)
+            if s in '+*/:^':
+                targetNum += 1
+        elif s == '(':
+            if localNum != '':
+                signs.append('*')
+                order.append(power)
+                target.append(targetNum)
+                targetNum += 1
+            power += 1
+        elif s == ')':
+            if i + 1 < length:
+                if expression[i + 1] in all_nums:
+                    signs.append('*')
+                    order.append(power)
+                    target.append(targetNum)
+                    targetNum += 1
+            power -= 1
+        if not isNum and localNum != '' and localNum != '-':
+            nums.append(localNum)
+            localNum = ''
     if localNum != '' and localNum != '-':
-    	nums.append(localNum)
+        nums.append(localNum)
 
+    # Clean numbers and find constants
     for i in range(len(nums)):
         num = nums[i]
         multiplier = 1
@@ -126,6 +131,7 @@ def Calculate(expression):
             multiplier *= float(localNum)
         nums[i] = multiplier
     
+    # Calculate
     for x in range(len(signs)):
         nextID = 0
         signPower = order_signs[signs[0]]
@@ -137,35 +143,35 @@ def Calculate(expression):
                 nextID = y
                 signPower = localPower
                 signOrder = localOrder
-
+        '''# Logs
         print(nums)
         print(signs)
         print(order)
-        print(target)
+        print(target)'''
         pos_type = pos_types[signs[nextID]]
         if pos_type == 0:
-        	nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
-        	signs.pop(nextID)
-        	order.pop(nextID)
-        	nums.pop(target[nextID] + 1)
-        	target.pop(nextID)
-        	for i in range(len(target)):
-        		if target[i] > nextID:
-        			target[i] -= 1
+            nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
+            signs.pop(nextID)
+            order.pop(nextID)
+            nums.pop(target[nextID] + 1)
+            target.pop(nextID)
+            for i in range(len(target)):
+                if target[i] > nextID:
+                    target[i] -= 1
         elif pos_type == 1:# √
-        	if target[nextID] + 1 < len(nums):
-        		nums[target[nextID] + 1] = Operation(signs[nextID], 0, nums[target[nextID] + 1])
-        		if len(signs) < len(nums):
-        			nums[target[nextID]] = Operation('*', nums[target[nextID]], nums[target[nextID] + 1])
-        			nums.pop(target[nextID] + 1)
-        	else:
-        		nums[target[nextID]] = Operation(signs[nextID], 0, nums[target[nextID]])
-        	signs.pop(nextID)
-        	order.pop(nextID)
+            if target[nextID] + 1 < len(nums):
+                nums[target[nextID] + 1] = Operation(signs[nextID], 0, nums[target[nextID] + 1])
+                if len(signs) < len(nums):
+                    nums[target[nextID]] = Operation('*', nums[target[nextID]], nums[target[nextID] + 1])
+                    nums.pop(target[nextID] + 1)
+            else:
+                nums[target[nextID]] = Operation(signs[nextID], 0, nums[target[nextID]])
+            signs.pop(nextID)
+            order.pop(nextID)
         elif pos_type == 2:
-        	nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], 0)
-        	signs.pop(nextID)
-        	order.pop(nextID)
+            nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], 0)
+            signs.pop(nextID)
+            order.pop(nextID)
     return nums[0]
 
 print(Calculate(input('Input expression: ')))
