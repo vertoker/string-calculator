@@ -156,11 +156,11 @@ def Calculate(expression):
                 nextID = y
                 signPower = localPower
                 signOrder = localOrder
-        # Logs
+        '''# Logs
         print(nums)
         print(signs)
         print(order)
-        print(target)
+        print(target)'''
         pos_type = pos_types[signs[nextID]]
         if pos_type == 0:
             nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
