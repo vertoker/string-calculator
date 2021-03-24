@@ -156,11 +156,11 @@ def Calculate(expression):
                 nextID = y
                 signPower = localPower
                 signOrder = localOrder
-        '''# Logs
+        # Logs
         print(nums)
         print(signs)
         print(order)
-        print(target)'''
+        print(target)
         pos_type = pos_types[signs[nextID]]
         if pos_type == 0:
             nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
@@ -172,13 +172,10 @@ def Calculate(expression):
                 if target[i] > last:
                     target[i] -= 1
         elif pos_type == 1:# √
-            if target[nextID] + 1 < len(nums):
-                nums[target[nextID] + 1] = Operation(signs[nextID], 0, nums[target[nextID] + 1])
-                if len(signs) < len(nums):
-                    nums[target[nextID]] = Operation('*', nums[target[nextID]], nums[target[nextID] + 1])
-                    nums.pop(target[nextID] + 1)
-            else:
-                nums[target[nextID]] = Operation(signs[nextID], 0, nums[target[nextID]])
+            nums[target[nextID]] = Operation(signs[nextID], 0, nums[target[nextID]])
+            if target[nextID] + 1 < len(nums) and len(signs) < len(nums):
+                nums[target[nextID]] = Operation('*', nums[target[nextID]], nums[target[nextID] + 1])
+                nums.pop(target[nextID] + 1)
             signs.pop(nextID)
             order.pop(nextID)
             last = target.pop(nextID)
