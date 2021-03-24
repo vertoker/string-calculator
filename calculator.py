@@ -1,7 +1,7 @@
 import math, re
 
-order_signs = {'+':1, '-':1, '*':2, '/':2, ':':2, '^':3, '√':3, '!':4}
-pos_types = {'+':0, '-':0, '*':0, '/':0, ':':0, '^':0, '√':1, '!':2}
+order_signs = {'+':1, '-':1, '*':2, '/':2, '^':3, '√':3, '!':4}
+pos_types = {'+':0, '-':0, '*':0, '/':0, '^':0, '√':1, '!':2}
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
 all_nums = '.1234567890'
 
@@ -82,11 +82,24 @@ def Calculate(expression):
                 target.append(targetNum)
                 targetNum += 1
         elif s in '+*/:^!√':
-            signs.append(s)
-            order.append(power)
             target.append(targetNum)
             if s in '+*/:^':
                 targetNum += 1
+            if i > 0:
+                if s == '√' and expression[i - 1] in all_nums:
+                    signs.append('*')
+                    order.append(power)
+                    targetNum += 1
+                    target.append(targetNum)
+            signs.append(s)
+            order.append(power)
+            if i + 1 < length:
+                if s == '!' and expression[i + 1] in all_nums:
+                    signs.append('*')
+                    order.append(power)
+                    target.append(targetNum)
+                    targetNum += 1
+
         elif s == '(':
             if localNum != '':
                 signs.append('*')
@@ -143,20 +156,20 @@ def Calculate(expression):
                 nextID = y
                 signPower = localPower
                 signOrder = localOrder
-        '''# Logs
+        # Logs
         print(nums)
         print(signs)
         print(order)
-        print(target)'''
+        print(target)
         pos_type = pos_types[signs[nextID]]
         if pos_type == 0:
             nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
             signs.pop(nextID)
             order.pop(nextID)
             nums.pop(target[nextID] + 1)
-            target.pop(nextID)
+            last = target.pop(nextID)
             for i in range(len(target)):
-                if target[i] > nextID:
+                if target[i] > last:
                     target[i] -= 1
         elif pos_type == 1:# √
             if target[nextID] + 1 < len(nums):
@@ -168,10 +181,18 @@ def Calculate(expression):
                 nums[target[nextID]] = Operation(signs[nextID], 0, nums[target[nextID]])
             signs.pop(nextID)
             order.pop(nextID)
+            last = target.pop(nextID)
+            for i in range(len(target)):
+                if target[i] > last:
+                    target[i] -= 1
         elif pos_type == 2:
             nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], 0)
             signs.pop(nextID)
             order.pop(nextID)
+            last = target.pop(nextID)
+            for i in range(len(target)):
+                if target[i] > last:
+                    target[i] -= 1
     return nums[0]
 
 print(Calculate(input('Input expression: ')))
