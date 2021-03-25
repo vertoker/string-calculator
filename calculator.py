@@ -6,10 +6,12 @@ alphabet = 'abcdefghijklmnopqrstuvwxyz'
 all_nums = '.1234567890'
 
 def Factorial(num):
-    if num < 2:
-        return num
-    else:
-        return num * Factorial(num - 1)
+	if num == 0:
+		return 1
+	elif num < 2:
+		return num
+	else:
+		return num * Factorial(num - 1)
 
 def Operation(sign, num1, num2):
     if sign == '+':
@@ -31,7 +33,7 @@ def Operation(sign, num1, num2):
             return math.sqrt(num2)
     return 0
 
-def Calculate(expression, saveconvert2int = True):
+def Calculate(expression, saveconvert2int = True, convert2int = False):
     # Format input
     expression = expression.replace(',', '.')
     expression = expression.replace(':', '/')
@@ -172,18 +174,12 @@ def Calculate(expression, saveconvert2int = True):
             signs.pop(nextID)
             order.pop(nextID)
             last = target.pop(nextID)
-            for i in range(len(target)):
-                if target[i] > last:
-                    target[i] -= 1
         elif pos_type == 2:
             nums[target[nextID]] = Operation(signs[nextID], nums[target[nextID]], 0)
             signs.pop(nextID)
             order.pop(nextID)
             last = target.pop(nextID)
-            for i in range(len(target)):
-                if target[i] > last:
-                    target[i] -= 1
-    if nums[0] % 1 == 0 and saveconvert2int:
+    if (nums[0] % 1 == 0 and saveconvert2int) or convert2int:
         return int(nums[0])
     return nums[0]
 
