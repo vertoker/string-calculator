@@ -75,9 +75,11 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 				order.append(power)
 				target.append(targetNum)
 				targetNum += 1
-		elif s in '+*/:^!√':
+		elif s in '+*/^!√':
 			target.append(targetNum)
-			if s in '+*/:^':
+			if s in '+*/^':
+				#if len(nums) <= targetNum:
+					#nums.append('0')
 				targetNum += 1
 			if i > 0:
 				if s == '√' and expression[i - 1] in all_nums:
@@ -112,11 +114,23 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 			localNum += s
 			isNum = True
 
-		if not isNum and localNum != '' and localNum != '-':
-			nums.append(localNum)
-			localNum = ''
+		if not isNum:
+			if localNum != '' and localNum != '-':
+				nums.append(localNum)
+				localNum = ''
+			#elif len(nums) <= targetNum + 1:
+				#nums.append('0')
+		# Logs
+		'''print(nums)
+		print(targetNum)
+		print(localNum)
+		print()'''
+
+	# Checkout on error and add last num
 	if localNum != '' and localNum != '-':
 		nums.append(localNum)
+	#elif len(nums) <= targetNum + 1:
+		#nums.append('0')
 
 	# Clean numbers and find constants
 	for i in range(len(nums)):
@@ -156,7 +170,7 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 				signOrder = localOrder
 		# Logs
 		'''print(nums)
-		print(signs)
+		print(signs[-1])
 		print(order)
 		print(target)'''
 		pos_type = pos_types[signs[nextID]]
@@ -191,7 +205,7 @@ def Equals(expression):
 	nums = []
 	for exp in expressions:
 		nums.append(Calculate(exp))
-	
+
 	localNum = nums[0]
 	for i in range(1, len(nums)):
 		if localNum != nums[i]:
