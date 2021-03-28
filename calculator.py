@@ -1,14 +1,16 @@
-import math, re
+import math, re, sys
 
 order_signs = {'+':1, '-':1, '*':2, '/':2, '^':3, '√':3, '!':4}
 pos_types = {'+':0, '-':0, '*':0, '/':0, '^':0, '√':1, '!':2}
 all_nums = '.1234567890'
+all_operations = '+-*/^√!'
+all_0_type_operations = '+-*/^'
 
 def Factorial(num):
-	if num == 0:
-		return 1
-	elif num < 2:
+	if num < 0:
 		return num
+	elif num < 2:
+		return 1
 	else:
 		return num * Factorial(num - 1)
 
@@ -46,6 +48,7 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 	localNum = ''
 	power = 0
 	targetNum = 0
+	nextError = False
 
     # Lists
 	nums = []
@@ -57,29 +60,9 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 	for i in range(length):
 		s = expression[i]
 		isNum = False
-		if s == '-':
-			if len(signs) == 0:
-				if localNum == '':
-					localNum += s
-					isNum = True
-				else:
-					signs.append(s)
-					order.append(power)
-					target.append(targetNum)
-					targetNum += 1
-			elif localNum == '' and signs[-1] != '!':
-				localNum += s
-				isNum = True
-			else:
-				signs.append(s)
-				order.append(power)
-				target.append(targetNum)
-				targetNum += 1
-		elif s in '+*/^!√':
+		if s in all_operations:
 			target.append(targetNum)
-			if s in '+*/^':
-				#if len(nums) <= targetNum:
-					#nums.append('0')
+			if s in all_0_type_operations:
 				targetNum += 1
 			if i > 0:
 				if s == '√' and expression[i - 1] in all_nums:
@@ -87,20 +70,34 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 					order.append(power)
 					targetNum += 1
 					target.append(targetNum)
+			else:
+				nextError = True
+
 			signs.append(s)
-			order.append(power)
+			if s in '+*/^':
+				order.append(power)
+			elif s == '-':
+				order.append(sys.maxsize)
+
 			if i + 1 < length:
 				if s == '!' and expression[i + 1] in all_nums:
 					signs.append('*')
 					order.append(power)
 					target.append(targetNum)
 					targetNum += 1
+				if expression[i + 1] in all_0_type_operations:
+					nextError = True
+			else:
+				nextError = True
 		elif s == '(':
 			if localNum != '':
 				signs.append('*')
 				order.append(power)
 				target.append(targetNum)
 				targetNum += 1
+			if i + 1 < length:
+				if expression[i + 1] in all_0_type_operations:
+					nextError = True
 			power += 1
 		elif s == ')':
 			if i + 1 < length:
@@ -118,8 +115,10 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 			if localNum != '' and localNum != '-':
 				nums.append(localNum)
 				localNum = ''
-			#elif len(nums) <= targetNum + 1:
-				#nums.append('0')
+		if nextError:
+			nums.append('0')
+			nextError = False
+
 		# Logs
 		'''print(nums)
 		print(targetNum)
@@ -129,8 +128,9 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 	# Checkout on error and add last num
 	if localNum != '' and localNum != '-':
 		nums.append(localNum)
-	#elif len(nums) <= targetNum + 1:
-		#nums.append('0')
+	if nextError:
+		nums.append('0')
+		nextError = False
 
 	# Clean numbers and find constants
 	for i in range(len(nums)):
@@ -146,7 +146,7 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 			num = num.replace('e', '?')
 
 		for n in num:
-			if n in all_nums:
+			if n in all_nums or n == '-':
 				localNum += n
 			elif localNum != '':
 				multiplier *= float(localNum)
@@ -170,7 +170,7 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 				signOrder = localOrder
 		# Logs
 		'''print(nums)
-		print(signs[-1])
+		print(signs)
 		print(order)
 		print(target)'''
 		pos_type = pos_types[signs[nextID]]
