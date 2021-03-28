@@ -4,7 +4,6 @@ order_signs = {'+':1, '-':1, '*':2, '/':2, '^':3, '√':3, '!':4}
 pos_types = {'+':0, '-':0, '*':0, '/':0, '^':0, '√':1, '!':2}
 all_nums = '.1234567890'
 all_operations = '+-*/^√!'
-all_0_type_operations = '+-*/^'
 
 def Factorial(num):
 	if num < 0:
@@ -62,7 +61,7 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 		isNum = False
 		if s in all_operations:
 			target.append(targetNum)
-			if s in all_0_type_operations:
+			if s in '+-*/^':
 				targetNum += 1
 			if i > 0:
 				if s == '√' and expression[i - 1] in all_nums:
@@ -70,14 +69,14 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 					order.append(power)
 					targetNum += 1
 					target.append(targetNum)
-			else:
+			elif s != '√':
 				nextError = True
 
 			signs.append(s)
-			if s in '+*/^':
-				order.append(power)
-			elif s == '-':
+			if s == '-':
 				order.append(sys.maxsize)
+			else:
+				order.append(power)
 
 			if i + 1 < length:
 				if s == '!' and expression[i + 1] in all_nums:
@@ -85,9 +84,9 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 					order.append(power)
 					target.append(targetNum)
 					targetNum += 1
-				if expression[i + 1] in all_0_type_operations:
+				if expression[i + 1] in '+-*/^':
 					nextError = True
-			else:
+			elif s != '!':
 				nextError = True
 		elif s == '(':
 			if localNum != '':
@@ -96,7 +95,7 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 				target.append(targetNum)
 				targetNum += 1
 			if i + 1 < length:
-				if expression[i + 1] in all_0_type_operations:
+				if expression[i + 1] in '+-*/^':
 					nextError = True
 			power += 1
 		elif s == ')':
