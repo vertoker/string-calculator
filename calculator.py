@@ -186,4 +186,13 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 		return int(nums[0])
 	return nums[0]
 
-print(Calculate(input('Input expression: ')))
+def Equals(expression):
+	expressions = expression.split('=')
+	nums = []
+	for exp in expressions:
+		nums.append(Calculate(exp))
+	localNum = nums[0]
+	for i in range(1, len(nums)):
+		if localNum != nums[i]:
+			return False
+	return True
