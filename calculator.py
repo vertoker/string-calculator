@@ -191,6 +191,7 @@ def Equals(expression):
 	nums = []
 	for exp in expressions:
 		nums.append(Calculate(exp))
+	
 	localNum = nums[0]
 	for i in range(1, len(nums)):
 		if localNum != nums[i]:
