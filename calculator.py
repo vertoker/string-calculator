@@ -34,14 +34,18 @@ def Operation(sign, num1, num2):
 		return math.sqrt(abs(num2)), False
 	return 0, True
 
-def Warning(num, error, warning):
-	if warning:
+def SpecialReturn(num, warning, warningPermission, error, errorPermission):
+	if warningPermission:
+		if errorPermission:
+			return num, warning, error
+		return num, warning
+	if errorPermission:
 		return num, error
 	return num
 
-def Calculate(expression, saveconvert2int = True, returnWarning = False, convert2int = False):
+def Calculate(expression, saveconvert2int = True, returnWarning = False, returnError = False, convert2int = False):
 	if expression == '':
-		return Warning(0, True, returnWarning)
+		return SpecialReturn(0, True, returnWarning, False, returnError)
 
     # Format input
 	expression = expression.replace(',', '.')
@@ -204,7 +208,7 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, convert
 		pos_type = pos_types[signs[nextID]]
 		if pos_type == 0:
 			nums[target[nextID]], error = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
-			if error: return Warning(0, True, returnWarning)
+			if error: return SpecialReturn(0, globalError, returnWarning, error, returnError)
 			signs.pop(nextID)
 			order.pop(nextID)
 			nums.pop(target[nextID] + 1)
@@ -214,7 +218,7 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, convert
 					target[i] -= 1
 		elif pos_type == 1:# √
 			nums[target[nextID]], error = Operation(signs[nextID], 0, nums[target[nextID]])
-			if error: return Warning(0, True, returnWarning)
+			if error: return SpecialReturn(0, globalError, returnWarning, error, returnError)
 			if target[nextID] + 1 < len(nums) and len(signs) < len(nums):
 				nums[target[nextID]] = Operation('*', nums[target[nextID]], nums[target[nextID] + 1])
 				nums.pop(target[nextID] + 1)
@@ -223,13 +227,13 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, convert
 			last = target.pop(nextID)
 		elif pos_type == 2:
 			nums[target[nextID]], error = Operation(signs[nextID], nums[target[nextID]], 0)
-			if error: return Warning(0, True, returnWarning)
+			if error: return SpecialReturn(0, globalError, returnWarning, error, returnError)
 			signs.pop(nextID)
 			order.pop(nextID)
 			last = target.pop(nextID)
 	if (nums[0] % 1 == 0 and saveconvert2int) or convert2int:
-		return Warning(int(nums[0]), globalError, returnWarning)
-	return Warning(nums[0], globalError, returnWarning)
+		return SpecialReturn(int(nums[0]), globalError, returnWarning, False, returnError)
+	return SpecialReturn(nums[0], globalError, returnWarning, False, returnError)
 
 def Equals(expression):
 	expressions = expression.split('=')
