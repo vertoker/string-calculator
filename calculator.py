@@ -1,4 +1,4 @@
-import math, re, sys
+import math, re
 
 order_signs = {'+':1, '-':1, '*':2, '/':2, '^':3, '√':3, '!':4}
 pos_types = {'+':0, '-':0, '*':0, '/':0, '^':0, '√':1, '!':2}
@@ -76,14 +76,11 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, convert
 					order.append(power)
 					targetNum += 1
 					target.append(targetNum)
-			elif s != '√':
+			elif s != '√' and s != '!':
 				nextError += 1
 
 			signs.append(s)
-			if s == '-':
-				order.append(sys.maxsize)
-			else:
-				order.append(power)
+			order.append(power)
 
 			if i + 1 < length:
 				if s == '!' and expression[i + 1] in all_nums:
@@ -93,7 +90,7 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, convert
 					targetNum += 1
 				if expression[i + 1] in '+-*/^':
 					nextError += 1
-			elif s != '!':
+			elif s != '!' and s != '√':
 				nextError += 1
 		elif s == '(':
 			if localNum != '':
