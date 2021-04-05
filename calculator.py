@@ -102,7 +102,7 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, convert
 				target.append(targetNum)
 				targetNum += 1
 			if i + 1 < length:
-				if expression[i + 1] in '+-*/^':
+				if expression[i + 1] in '+-*/^!':
 					nextError += 1
 			power += 1
 		elif s == ')':
