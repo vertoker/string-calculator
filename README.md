@@ -38,6 +38,10 @@ Simple calculator in Python, which can solve expression in string
 
 <I>Out: </I>120
 
+<I>In: </I>(!+!)^(!+!)
+
+<I>Out: </I>4
+
 <B>And constants (e, pi)</B>
 
 <I>In: </I>5e-2pi
