@@ -34,23 +34,29 @@ def Operation(sign, num1, num2):
 		return math.sqrt(abs(num2)), False
 	return 0, True
 
-def Calculate(expression, saveconvert2int = True, convert2int = False):
+def Warning(num, error, warning):
+	if warning:
+		return num, error
+	return num
+
+def Calculate(expression, saveconvert2int = True, returnWarning = False, convert2int = False):
 	if expression == '':
-		return 0
+		return Warning(0, True, returnWarning)
 
     # Format input
 	expression = expression.replace(',', '.')
 	expression = expression.replace(':', '/')
 	expression = expression.replace('**', '^')
 
-    # Start params
+    # Temporarity params
 	length = len(expression)
 	localNum = ''
 	power = 0
 	targetNum = 0
 	nextError = 0
 
-    # Lists
+    # Lists and stuff (all return params)
+	globalError = False
 	nums = []
 	signs = []
 	order = []
@@ -116,6 +122,7 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 				nums.append(localNum)
 				localNum = ''
 		if nextError > 0:
+			globalError = True
 			for i in range(nextError):
 				nums.append('0')
 			nextError = 0
@@ -130,9 +137,12 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 	if localNum != '' and localNum != '-':
 		nums.append(localNum)
 	if nextError > 0:
+		globalError = True
 		for i in range(nextError):
 			nums.append('0')
 		nextError = 0
+	if power != 0:
+		globalError = True
 
 	# Clean numbers and find constants
 	for i in range(len(nums)):
@@ -144,10 +154,10 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 
 		if 'pi' in num:
 			multiplier *= pow(math.pi, len(re.findall('pi', num)))
-			num = num.replace('pi', '?')
+			num = num.replace('pi', '+')
 		if 'e' in num:
 			multiplier *= pow(math.e, len(re.findall('e', num)))
-			num = num.replace('e', '?')
+			num = num.replace('e', '+')
 
 		for n in num:
 			if n in all_nums:
@@ -158,13 +168,16 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 					hasPoint = True
 					localNum += n
 					hasNums = True
-			elif localNum != '':
-				if localNum[0] == '.':
-					localNum = '0' + localNum
-				if localNum[-1] == '.':
-					localNum = localNum + '0'
-				multiplier *= float(localNum)
-				localNum = ''
+			else:
+				if localNum != '':
+					if localNum[0] == '.':
+						localNum = '0' + localNum
+					if localNum[-1] == '.':
+						localNum = localNum + '0'
+					multiplier *= float(localNum)
+					localNum = ''
+				if n != '+':
+					globalError = True
 
 		if localNum != '':
 			if localNum[0] == '.':
@@ -187,14 +200,14 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 				signPower = localPower
 				signOrder = localOrder
 		# Logs
-		print(nums)
+		'''print(nums)
 		print(signs)
 		print(order)
-		print(target)
+		print(target)'''
 		pos_type = pos_types[signs[nextID]]
 		if pos_type == 0:
 			nums[target[nextID]], error = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
-			if error: return 0
+			if error: return Warning(0, True, returnWarning)
 			signs.pop(nextID)
 			order.pop(nextID)
 			nums.pop(target[nextID] + 1)
@@ -204,7 +217,7 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 					target[i] -= 1
 		elif pos_type == 1:# √
 			nums[target[nextID]], error = Operation(signs[nextID], 0, nums[target[nextID]])
-			if error: return 0
+			if error: return Warning(0, True, returnWarning)
 			if target[nextID] + 1 < len(nums) and len(signs) < len(nums):
 				nums[target[nextID]] = Operation('*', nums[target[nextID]], nums[target[nextID] + 1])
 				nums.pop(target[nextID] + 1)
@@ -213,13 +226,13 @@ def Calculate(expression, saveconvert2int = True, convert2int = False):
 			last = target.pop(nextID)
 		elif pos_type == 2:
 			nums[target[nextID]], error = Operation(signs[nextID], nums[target[nextID]], 0)
-			if error: return 0
+			if error: return Warning(0, True, returnWarning)
 			signs.pop(nextID)
 			order.pop(nextID)
 			last = target.pop(nextID)
 	if (nums[0] % 1 == 0 and saveconvert2int) or convert2int:
-		return int(nums[0])
-	return nums[0]
+		return Warning(int(nums[0]), globalError, returnWarning)
+	return Warning(nums[0], globalError, returnWarning)
 
 def Equals(expression):
 	expressions = expression.split('=')
