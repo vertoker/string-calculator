@@ -1,5 +1,22 @@
 import math, re
 
+errors = {
+'div0':'Can\'t be divided by zero',
+'factminus':'Сan\'t calculate a factorial from a negative number',
+'factlarge':'The factorial is too large to calculate',
+'sqrtminus':'Сan\'t calculate the square root from a negative number'
+}
+warnings = {
+'null':'Expression is empty',
+'skipmultiply':'Skipped multiplication sign',
+'skipnumber':'Skipped number between/nearby sign(s)',
+'openparenthesis':'There is an extra open parenthesis',
+'closedparenthesis':'There is an extra closed parenthesis',
+'additionalpoint':'There is an extra dot in the number',
+'additionalsymbol':'There is an extra symbol in the expression, which not used in computation',
+'nonums':'You broke real error protection. How?'
+}
+
 order_signs = {'+':1, '-':1, '*':2, '/':2, '^':3, '√':3, '!':4}
 pos_types = {'+':0, '-':0, '*':0, '/':0, '^':0, '√':1, '!':2}
 all_nums_constants = '.1234567890epi'
@@ -14,25 +31,28 @@ def Factorial(num):
 
 def Operation(sign, num1, num2):
 	if sign == '+':
-		return num1 + num2, False
+		return num1 + num2, ''
 	elif sign == '-':
-		return num1 - num2, False
+		return num1 - num2, ''
 	elif sign == '*':
-		return num1 * num2, False
+		return num1 * num2, ''
 	elif sign == '/':
 		if num2 == 0:
-			return 0, True
-		return num1 / num2, False
+			return 0, errors['div0']
+		return num1 / num2, ''
 	elif sign == '^':
-		return math.pow(num1, num2), False
+		return math.pow(num1, num2), ''
 	elif sign == '!':
 		if num1 < 0:
-			return 0, True
-		return Factorial(int(num1)), False
+			return 0, errors['factminus']
+		try:
+			return Factorial(int(num1)), ''
+		except:
+			return 0, errors['factlarge']
 	elif sign == '√':
 		if num2 < 0:
-			return 0, True
-		return math.sqrt(abs(num2)), False
+			return 0, errors['sqrtminus']
+		return math.sqrt(abs(num2)), ''
 	return 0, True
 
 def SpecialReturn(num, warning, warningPermission, error, errorPermission):
@@ -46,7 +66,7 @@ def SpecialReturn(num, warning, warningPermission, error, errorPermission):
 
 def Calculate(expression, saveconvert2int = True, returnWarning = False, returnError = False, convert2int = False):
 	if expression == '':
-		return SpecialReturn(0, True, returnWarning, False, returnError)
+		return SpecialReturn(0, [warnings['null']], returnWarning, globalErrors, returnError)
 
     # Format input
 	expression = expression.replace(',', '.')
@@ -61,7 +81,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 	nextError = 0
 
     # Lists and stuff (all return params)
-	globalError = False
+	globalWarnings = []
+	globalErrors = []
 	nums = []
 	signs = []
 	order = []
@@ -104,7 +125,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 				nextError += 1
 			if notLastChar:
 				if expression[i + 1] in all_nums_constants:
-					globalError = True
+					if not warnings['skipmultiply'] in globalWarnings:
+						globalWarnings.append(warnings['skipmultiply'])
 					signs.append('*')
 					order.append(power)
 					target.append(targetNum)
@@ -114,7 +136,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 
 			if notFirstChar:
 				if expression[i - 1] in all_nums_constants:
-					globalError = True
+					if not warnings['skipmultiply'] in globalWarnings:
+						globalWarnings.append(warnings['skipmultiply'])
 					signs.append('*')
 					order.append(power)
 					targetNum += 1
@@ -130,7 +153,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 		elif s == '(':
 			if notFirstChar:
 				if expression[i - 1] in all_nums_constants:
-					globalError = True
+					if not warnings['skipmultiply'] in globalWarnings:
+						globalWarnings.append(warnings['skipmultiply'])
 					signs.append('*')
 					order.append(power)
 					target.append(targetNum)
@@ -147,7 +171,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 				nextError += 1
 			if notLastChar:
 				if expression[i + 1] in all_nums_constants:
-					globalError = True
+					if not warnings['skipmultiply'] in globalWarnings:
+						globalWarnings.append(warnings['skipmultiply'])
 					signs.append('*')
 					order.append(power)
 					target.append(targetNum)
@@ -161,7 +186,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 				nums.append(localNum)
 				localNum = ''
 		if nextError > 0:
-			globalError = True
+			if not warnings['skipnumber'] in globalWarnings:
+				globalWarnings.append(warnings['skipnumber'])
 			for i in range(nextError):
 				nums.append('0')
 			nextError = 0
@@ -173,14 +199,18 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 	if localNum != '' and localNum != '-':
 		nums.append(localNum)
 	if nextError > 0:
-		globalError = True
+		if not warnings['skipnumber'] in globalWarnings:
+			globalWarnings.append(warnings['skipnumber'])
 		for i in range(nextError):
 			nums.append('0')
 		nextError = 0
-	if power != 0:
-		globalError = True
+	if power > 0:
+		globalWarnings.append(warnings['openparenthesis'])
+	if power < 0:
+		globalWarnings.append(warnings['closedparenthesis'])
 	if len(nums) == 0:
-		return SpecialReturn(0, True, returnWarning, False, returnError)
+		globalErrors.append(errors['nonums'])
+		return SpecialReturn(0, globalWarnings, returnWarning, globalErrors, returnError)
 
 	# Clean numbers and find constants
 	for i in range(len(nums)):
@@ -208,6 +238,9 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 					hasPoint = True
 					localNum += n
 					hasNums = True
+				else:
+					if warnings['additionalpoint'] in globalWarnings:
+						globalWarnings.append(warnings['additionalpoint'])
 			else:
 				if localNum != '':
 					if localNum[0] == '.':
@@ -216,8 +249,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 						localNum = localNum + '0'
 					multiplier *= float(localNum)
 					localNum = ''
-				if n != '+':
-					globalError = True
+				if n != '+' and not warnings['additionalsymbol'] in globalWarnings:
+					globalWarnings.append(warnings['additionalsymbol'])
 
 		if localNum != '':
 			if localNum[0] == '.':
@@ -240,12 +273,12 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 				signPower = localPower
 				signOrder = localOrder
 		# Logs
-		print(nums, signs, order, target, sep = '\n')
+		#print(nums, signs, order, target, sep = '\n')
 		pos_type = pos_types[signs[nextID]]
 		if pos_type == 0:
 			nums[target[nextID]], error = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
-			if error:
-				return SpecialReturn(0, globalError, returnWarning, error, returnError)
+			if not error in globalErrors:
+				globalErrors.append(error)
 			signs.pop(nextID)
 			order.pop(nextID)
 			nums.pop(target[nextID] + 1)
@@ -255,8 +288,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 					target[i] -= 1
 		elif pos_type == 1:# √
 			nums[target[nextID]], error = Operation(signs[nextID], 0, nums[target[nextID]])
-			if error:
-				return SpecialReturn(0, globalError, returnWarning, error, returnError)
+			if not error in globalErrors:
+				globalErrors.append(error)
 			if target[nextID] + 1 < len(nums) and len(signs) < len(nums):
 				nums[target[nextID]] = Operation('*', nums[target[nextID]], nums[target[nextID] + 1])
 				nums.pop(target[nextID] + 1)
@@ -265,14 +298,14 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 			last = target.pop(nextID)
 		elif pos_type == 2:
 			nums[target[nextID]], error = Operation(signs[nextID], nums[target[nextID]], 0)
-			if error:
-				return SpecialReturn(0, globalError, returnWarning, error, returnError)
+			if not error in globalErrors:
+				globalErrors.append(error)
 			signs.pop(nextID)
 			order.pop(nextID)
 			last = target.pop(nextID)
 	if (nums[0] % 1 == 0 and saveconvert2int) or convert2int:
-		return SpecialReturn(int(nums[0]), globalError, returnWarning, False, returnError)
-	return SpecialReturn(nums[0], globalError, returnWarning, False, returnError)
+		return SpecialReturn(int(nums[0]), globalWarnings, returnWarning, globalErrors, returnError)
+	return SpecialReturn(nums[0], globalWarnings, returnWarning, globalErrors, returnError)
 
 def Equals(expression):
 	expressions = expression.split('=')
