@@ -2,7 +2,8 @@ import math, re
 
 order_signs = {'+':1, '-':1, '*':2, '/':2, '^':3, '√':3, '!':4}
 pos_types = {'+':0, '-':0, '*':0, '/':0, '^':0, '√':1, '!':2}
-all_nums = '1234567890'
+all_nums_constants = '.1234567890epi'
+all_nums = '.1234567890'
 all_operations = '+-*/^√!'
 
 def Factorial(num):
@@ -70,50 +71,87 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 	for i in range(length):
 		s = expression[i]
 		isNum = False
-		if s in all_operations:
+		notFirstChar = i > 0
+		notLastChar = i + 1 < length
+
+		if s in '+-*/^':
 			target.append(targetNum)
-			if s in '+-*/^':
-				targetNum += 1
-			if i > 0:
-				if s == '√' and expression[i - 1] in all_nums:
-					signs.append('*')
-					order.append(power)
-					targetNum += 1
-					target.append(targetNum)
-			elif s != '√' and s != '!':
+			targetNum += 1
+
+			if notFirstChar:
+				if not expression[i - 1] in all_nums_constants and not expression[i - 1] in '!)':
+					nextError += 1
+			else:
+				nextError += 1
+
+			if notLastChar:
+				if not expression[i + 1] in all_nums_constants and not expression[i + 1] in '√(':
+					nextError += 1
+			else:
 				nextError += 1
 
 			signs.append(s)
 			order.append(power)
+		elif s == '!':
+			target.append(targetNum)
+			signs.append(s)
+			order.append(power)
 
-			if i + 1 < length:
-				if s == '!' and expression[i + 1] in all_nums:
+			if notFirstChar:
+				if not expression[i - 1] in all_nums_constants and not expression[i - 1] in '!)':
+					nextError += 1
+			else:
+				nextError += 1
+			if notLastChar:
+				if expression[i + 1] in all_nums_constants:
+					globalError = True
 					signs.append('*')
 					order.append(power)
 					target.append(targetNum)
 					targetNum += 1
-				if expression[i + 1] in '+-*/^':
+		elif s == '√':
+			target.append(targetNum)
+
+			if notFirstChar:
+				if expression[i - 1] in all_nums_constants:
+					globalError = True
+					signs.append('*')
+					order.append(power)
+					targetNum += 1
+					target.append(targetNum)
+			if notLastChar:
+				if not expression[i + 1] in all_nums_constants and not expression[i + 1] in '√(':
 					nextError += 1
-			elif s != '!' and s != '√':
+			else:
 				nextError += 1
+
+			signs.append(s)
+			order.append(power)
 		elif s == '(':
-			if localNum != '':
-				signs.append('*')
-				order.append(power)
-				target.append(targetNum)
-				targetNum += 1
-			if i + 1 < length:
-				if expression[i + 1] in '+-*/^!':
-					nextError += 1
+			if notFirstChar:
+				if expression[i - 1] in all_nums_constants:
+					globalError = True
+					signs.append('*')
+					order.append(power)
+					target.append(targetNum)
+					targetNum += 1
+			if not notLastChar:
+				nextError += 1
 			power += 1
 		elif s == ')':
-			if i + 1 < length:
-				if expression[i + 1] in all_nums:
+			power -= 1
+			if notFirstChar:
+				if expression[i - 1] == '(':
+					nextError += 1
+			else:
+				nextError += 1
+			if notLastChar:
+				if expression[i + 1] in all_nums_constants:
+					globalError = True
 					signs.append('*')
 					order.append(power)
 					target.append(targetNum)
 					targetNum += 1
-			power -= 1
 		else:
 			localNum += s
 			isNum = True
@@ -129,12 +167,9 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 			nextError = 0
 
 		# Logs
-		'''print(nums)
-		print(targetNum)
-		print(localNum)
-		print()'''
+		#print(nums, targetNum, localNum, sep = '\n')
 
-	# Checkout on error and add last num
+	# Checkout on error and other
 	if localNum != '' and localNum != '-':
 		nums.append(localNum)
 	if nextError > 0:
@@ -144,6 +179,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 		nextError = 0
 	if power != 0:
 		globalError = True
+	if len(nums) == 0:
+		return SpecialReturn(0, True, returnWarning, False, returnError)
 
 	# Clean numbers and find constants
 	for i in range(len(nums)):
@@ -156,12 +193,14 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 		if 'pi' in num:
 			multiplier *= pow(math.pi, len(re.findall('pi', num)))
 			num = num.replace('pi', '+')
+			hasNums = True
 		if 'e' in num:
 			multiplier *= pow(math.e, len(re.findall('e', num)))
 			num = num.replace('e', '+')
+			hasNums = True
 
 		for n in num:
-			if n in all_nums:
+			if n in '1234567890':
 				localNum += n
 				hasNums = True
 			elif n == '.':
@@ -201,14 +240,12 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 				signPower = localPower
 				signOrder = localOrder
 		# Logs
-		'''print(nums)
-		print(signs)
-		print(order)
-		print(target)'''
+		print(nums, signs, order, target, sep = '\n')
 		pos_type = pos_types[signs[nextID]]
 		if pos_type == 0:
 			nums[target[nextID]], error = Operation(signs[nextID], nums[target[nextID]], nums[target[nextID] + 1])
-			if error: return SpecialReturn(0, globalError, returnWarning, error, returnError)
+			if error:
+				return SpecialReturn(0, globalError, returnWarning, error, returnError)
 			signs.pop(nextID)
 			order.pop(nextID)
 			nums.pop(target[nextID] + 1)
@@ -218,7 +255,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 					target[i] -= 1
 		elif pos_type == 1:# √
 			nums[target[nextID]], error = Operation(signs[nextID], 0, nums[target[nextID]])
-			if error: return SpecialReturn(0, globalError, returnWarning, error, returnError)
+			if error:
+				return SpecialReturn(0, globalError, returnWarning, error, returnError)
 			if target[nextID] + 1 < len(nums) and len(signs) < len(nums):
 				nums[target[nextID]] = Operation('*', nums[target[nextID]], nums[target[nextID] + 1])
 				nums.pop(target[nextID] + 1)
@@ -227,7 +265,8 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 			last = target.pop(nextID)
 		elif pos_type == 2:
 			nums[target[nextID]], error = Operation(signs[nextID], nums[target[nextID]], 0)
-			if error: return SpecialReturn(0, globalError, returnWarning, error, returnError)
+			if error:
+				return SpecialReturn(0, globalError, returnWarning, error, returnError)
 			signs.pop(nextID)
 			order.pop(nextID)
 			last = target.pop(nextID)
