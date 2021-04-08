@@ -1,10 +1,16 @@
 import math, re
+from sys import float_info
 
 errors = {
-'div0':'Can\'t be divided by zero',
-'factminus':'Сan\'t calculate a factorial from a negative number',
+'pluslarge':'The plus is too large to calculate',
+'minuslarge':'The minus is too large to calculate',
+'multiplylarge':'The multiply is too large to calculate',
+'divisionlarge':'The division is too large to calculate',
+'div0':'Can not be divided by zero',
+'degreelarge':'The degree is too large to calculate',
+'factminus':'Сan not calculate a factorial from a negative number',
 'factlarge':'The factorial is too large to calculate',
-'sqrtminus':'Сan\'t calculate the square root from a negative number'
+'sqrtminus':'Сan not calculate the square root from a negative number'
 }
 warnings = {
 'null':'Expression is empty',
@@ -17,7 +23,7 @@ warnings = {
 'nonums':'You broke real error protection. How?'
 }
 
-order_signs = {'+':1, '-':1, '*':2, '/':2, '^':3, '√':3, '!':4}
+order_signs = {'+':1, '-':1, '*':2, '/':2, '^':3, '√':4, '!':5}
 pos_types = {'+':0, '-':0, '*':0, '/':0, '^':0, '√':1, '!':2}
 all_nums_constants = '.1234567890epi'
 all_nums = '.1234567890'
@@ -31,17 +37,32 @@ def Factorial(num):
 
 def Operation(sign, num1, num2):
 	if sign == '+':
-		return num1 + num2, ''
+		try:
+			return num1 + num2, ''
+		except:
+			return 0, errors['pluslarge']
 	elif sign == '-':
-		return num1 - num2, ''
+		try:
+			return num1 - num2, ''
+		except:
+			return 0, errors['minuslarge']
 	elif sign == '*':
-		return num1 * num2, ''
+		try:
+			return num1 * num2, ''
+		except:
+			return 0, errors['multiplylarge']
 	elif sign == '/':
 		if num2 == 0:
 			return 0, errors['div0']
-		return num1 / num2, ''
+		try:
+			return num1 / num2, ''
+		except:
+			return 0, errors['divisionlarge']
 	elif sign == '^':
-		return math.pow(num1, num2), ''
+		try:
+			return math.pow(num1, num2), ''
+		except:
+			return 0, errors['degreelarge']
 	elif sign == '!':
 		if num1 < 0:
 			return 0, errors['factminus']
@@ -52,7 +73,10 @@ def Operation(sign, num1, num2):
 	elif sign == '√':
 		if num2 < 0:
 			return 0, errors['sqrtminus']
-		return math.sqrt(abs(num2)), ''
+		try:
+			return math.sqrt(num2), ''
+		except:
+			return 0, errors['sqrtlarge']
 	return 0, True
 
 def SpecialReturn(num, warning, warningPermission, error, errorPermission):
@@ -66,7 +90,7 @@ def SpecialReturn(num, warning, warningPermission, error, errorPermission):
 
 def Calculate(expression, saveconvert2int = True, returnWarning = False, returnError = False, convert2int = False):
 	if expression == '':
-		return SpecialReturn(0, [warnings['null']], returnWarning, globalErrors, returnError)
+		return SpecialReturn(0, [warnings['null']], returnWarning, [], returnError)
 
     # Format input
 	expression = expression.replace(',', '.')
@@ -266,9 +290,12 @@ def Calculate(expression, saveconvert2int = True, returnWarning = False, returnE
 		signPower = order_signs[signs[0]]
 		signOrder = order[0]
 		for y in range(1, len(signs)):
-			localPower = order_signs[signs[y]]
 			localOrder = order[y]
-			if signOrder < localOrder or (signOrder == localOrder and signPower < localPower):
+			localPower = order_signs[signs[y]]
+			orderPriority = signOrder < localOrder
+			signPriority = signPower < localPower
+			degreePriority = signPower == order_signs['^'] and localPower == order_signs['^']
+			if orderPriority or signOrder == localOrder and (signPriority or degreePriority):
 				nextID = y
 				signPower = localPower
 				signOrder = localOrder
