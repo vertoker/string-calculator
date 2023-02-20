@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System;
 
-namespace ConsoleCalculator
+namespace StringCalculator
 {
     using num = System.Double;
     using order = System.Byte;
@@ -91,7 +91,13 @@ namespace ConsoleCalculator
             return operations[sign].Invoke(num1, num2);
         }
         #endregion
-
+        
+        /// <summary>
+        /// Main function of calculator
+        /// </summary>
+        /// <returns>
+        /// Double number (if expression in int - without float digit problem)
+        /// </returns>
         public static num Calculate(string expression)
         {
             if (expression == string.Empty)
