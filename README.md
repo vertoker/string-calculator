@@ -1,6 +1,6 @@
-# console-calculator
+# string-calculator
 <P>
-Simple calculator in Python, which can solve expression in string
+Simple calculator in several (C#, Python, JS) languages, which can solve expression in string and returns a number (double)
 
 <I>C# and Python version is fully functionality. JS version doesn't contain: power, sqrt, constants like e or pi</I>
 
