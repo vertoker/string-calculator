@@ -2,6 +2,8 @@
 <P>
 Simple calculator in Python, which can solve expression in string
 
+<I>C# and Python version is fully functionality. JS version doesn't contain: power, sqrt, constants like e or pi</I>
+
 <B>Can solve basic operations (+, -, *, /)</B>
 
 <I>In: </I>4-5+6
